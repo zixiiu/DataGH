@@ -18,9 +18,9 @@ def find_seg(df, th, rd, ra, visualize=False):
             if last_seg == 0:  # going up
                 if not bk_pair:  # first time
                     bk_pair.append((bk_start, idx))
-                if row['Time (s)'] - time_start > rd: # a valid break
+                elif row['Time (s)'] - time_start > rd: # a valid break
                     bk_pair.append((bk_start, idx))
-                if row['Time (s)'] - time_start > 8:# end of test
+                elif row['Time (s)'] - time_start > 8 and len(bk_pair) > 1: # end of test
                     # print('Time start: %f, Time end: %f' % (time_start, row['Time (s)']))
                     break
 
@@ -58,7 +58,7 @@ def find_seg(df, th, rd, ra, visualize=False):
 if __name__ == '__main__':
     # f = Fitter()
     # f.load_data()
-    df = pd.read_csv('data/D9200 1918 5143.csv')
+    df = pd.read_csv('data/8g3 gb6 7454.csv')
     th = 2
     rd = 2
     ra = 250
