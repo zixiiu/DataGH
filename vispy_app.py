@@ -78,14 +78,17 @@ class VispyApp:
         self.font_manager = FontManager(method='gpu')
 
         # Large Font Special
-        self._font_size = 16 # 16 is normal
+        self._font_size = 16  # 16 is normal
         # self._font_size = 48
-        self._x_axis_font_size = 12 # 12 is normal
+        self._x_axis_font_size = 12  # 12 is normal
         # self._x_axis_font_size = 36
+
+        # gb5 special
+        self.is_gb5 = False
 
     def read_data(self, path='data/D9200 1920 5150.csv'):
         # self.df = pd.read_csv(path)
-        self.fitter = Fitter()
+        self.fitter = Fitter(is_gb5=self.is_gb5)
         self.fitter.load_data(path)
         self.df = self.fitter.df
 
@@ -101,8 +104,9 @@ class VispyApp:
         grid = canvas.central_widget.add_grid(margin=0)
         grid.spacing = 0
 
-        title = scene.Label("GB6 Power Filter(ctrl+R: Remove, ctrl+A: Add, ctrl+D: Deselect, ctrl+S: Save, I: Insert Segment, O: Remove Segment)",
-                            color='white', font_size=self._font_size, font_manager=self.font_manager)
+        title = scene.Label(
+            "GB6 Power Filter(ctrl+R: Remove, ctrl+A: Add, ctrl+D: Deselect, ctrl+S: Save, I: Insert Segment, O: Remove Segment)",
+            color='white', font_size=self._font_size, font_manager=self.font_manager)
         title.height_max = 40
         grid.add_widget(title, row=0, col=0, col_span=2)
 
@@ -126,7 +130,7 @@ class VispyApp:
         #                                      num_segments=10, parent=view.scene)
 
         # before the scatter:
-        for idx in range(32):
+        for idx in range(42 if self.is_gb5 else 32):
             start, end = self.fitter.get_seg_pair(idx)
             lr = scene.LinearRegion([self.df.iloc[start]['Time (s)'], self.df.iloc[end]['Time (s)']],
                                     [0.4, 0.4, 0.4, 0.5],
@@ -144,10 +148,17 @@ class VispyApp:
         self.reset_point_color()
         view.add(self.scatter)
 
-        for idx in range(32):
+        for idx in range(42 if self.is_gb5 else 32):
             start, end = self.fitter.get_seg_pair(idx)
             nlevel = max(self.df.iloc[start:end]['Main Avg Power (W)'].values)
-            ntext = scene.Text('%i, %s' % (idx + 1, self._test_name_map[idx]),
+            if self.is_gb5:
+                ntext = scene.Text('%i, %s' % (idx + 1, 'Some GB5 Test'),
+                                   pos=(self.df.iloc[start]['Time (s)'], nlevel),
+                                   color='white', parent=view.scene,
+                                   rotation=270., anchor_x='left', anchor_y='top',
+                                   font_manager=self.font_manager, font_size=self._font_size)
+            else:
+                ntext = scene.Text('%i, %s' % (idx + 1, self._test_name_map[idx]),
                                pos=(self.df.iloc[start]['Time (s)'], nlevel),
                                color='white', parent=view.scene,
                                rotation=270., anchor_x='left', anchor_y='top',
@@ -155,7 +166,8 @@ class VispyApp:
             # ntext = None
             avg = self.fitter.seg_average[idx]
             atext = scene.Text('%.2f' % avg, pos=(self.df.iloc[end]['Time (s)'], avg), color='white', parent=view.scene,
-                               anchor_x='left', anchor_y='top', font_manager=self.font_manager, font_size=self._font_size)
+                               anchor_x='left', anchor_y='top', font_manager=self.font_manager,
+                               font_size=self._font_size)
             # atext = None
             aline = scene.Line(
                 pos=np.array([[self.df.iloc[start]['Time (s)'], avg], [self.df.iloc[end]['Time (s)'], avg]]),
@@ -164,7 +176,7 @@ class VispyApp:
 
         # set camera
         view.camera = PanZoomCamera()
-        view.camera.set_range((0, 350), (0, 25), margin=0)
+        view.camera.set_range((0, np.max(data[:, 0])), (0, 25), margin=0)
         view.add(visuals.GridLines())
 
         xaxis.link_view(view)
@@ -220,9 +232,6 @@ class VispyApp:
                     self.fitter.rm_seg(idx)
                 self.replot_graph_element()
 
-
-
-
         @canvas.connect
         def on_mouse_press(event):
             # global point_color, selected_mask
@@ -269,15 +278,18 @@ class VispyApp:
         for idx, (lr, ntext, aline, atext) in enumerate(self.graph_element):
             start, end = self.fitter.get_seg_pair(idx)
             lr.set_data(pos=np.array([self.df.iloc[start]['Time (s)'], self.df.iloc[end]['Time (s)']]))
-            ntext.text = '%i, %s' % (idx + 1, self._test_name_map[idx])
+            if self.is_gb5:
+                ntext.text = '%i, %s' % (idx + 1, 'Some GB5 Test')
+            else:
+                ntext.text = '%i, %s' % (idx + 1, self._test_name_map[idx])
             nlevel = max(self.df.iloc[start:end]['Main Avg Power (W)'].values)
             ntext.pos = (self.df.iloc[start]['Time (s)'], nlevel)
         self.reset_avg_bar()
+
     def reset_avg_bar(self):
         self.sync_rm_mask()
         self.fitter.recalculate_avg()
         for idx, (_, _, aline, atext) in enumerate(self.graph_element):
-
             avg = self.fitter.seg_average[idx]
             start, end = self.fitter.get_seg_pair(idx)
             aline.set_data(pos=np.array([[self.df.iloc[start]['Time (s)'], avg], [self.df.iloc[end]['Time (s)'], avg]]))
@@ -296,19 +308,31 @@ class VispyApp:
         app.run()
 
 
-if __name__ == '__main__':
-    freeze_support()
+def run_with_args(large_font=False, gb5=False):
     vapp = VispyApp()
+    vapp.is_gb5 = gb5
+    if large_font:
+        vapp._font_size = 48
+        vapp._x_axis_font_size = 36
     file_path = filedialog.askopenfilename()
-    recal_yn = input('Recalculate Segments? (y/n)')
     vapp.read_data(file_path)
+    recal_yn = input('Recalculate Segments? (y/n)')
     if recal_yn == 'y' or recal_yn == 'Y':
         th_lo = float(input('th_lo(1.5):') or 1.5)
         th_hi = float(input('th_hi(2.5):') or 2.5)
         avg_lo = int(input('avg_lo(200):') or 200)
         avg_hi = int(input('avg_hi(300):') or 300)
-        rest_lo = float(input('rest_lo(2.0):') or 2.0)
-        rest_hi = float(input('rest_hi(3.0):') or 3.0)
+        if gb5:
+            rest_lo = float(input('rest_lo(0.5):') or 0.5)
+            rest_hi = float(input('rest_hi(0.9):') or 0.9)
+        else:
+            rest_lo = float(input('rest_lo(2.0):') or 2.0)
+            rest_hi = float(input('rest_hi(3.0):') or 3.0)
         vapp.fitter.det_seg(th_lo, th_hi, avg_lo, avg_hi, rest_lo, rest_hi)
     vapp.fitter.load_seg_from_df()
     vapp.start()
+
+
+if __name__ == '__main__':
+    freeze_support()
+    run_with_args()

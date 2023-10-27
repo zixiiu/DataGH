@@ -10,14 +10,15 @@ from find_seg import find_seg
 
 
 class Fitter:
-    def __init__(self):
+    def __init__(self, is_gb5=False):
         self.df = None
         self.res_loss = None
         self.path = ''
         self.seg_pair = []
         self.seg_name = []
-        self.seg_average = [0.0 for _ in range(32)]
         self.rm_idx = set()
+        self.is_gb5 = is_gb5
+        self.seg_average = [0.0 for _ in range(42 if self.is_gb5 else 32)]
 
     def get_seg_pair(self, idx):
         if idx < len(self.seg_pair):
@@ -112,7 +113,8 @@ class Fitter:
     def det_seg(self, th_lo=1.5, th_hi=2.5, avg_lo=200, avg_hi=300, rest_lo=2.0, rest_hi=3.0):
         self.try_range(th_lo, th_hi, avg_lo, avg_hi, rest_lo, rest_hi)
         sorted_loss = sorted(self.res_loss, key=lambda x: x[0])
-        selected_seg_pair = sorted_loss[0][4][:32]
+        selected_seg_pair = sorted_loss[0][4][:42 if self.is_gb5 else 32]
+        logging.info('minimum loss: %s' % str(sorted_loss[0][0]))
         self.df.loc[:, 'seg'] = -1
         for idx, (start, end) in enumerate(selected_seg_pair):
             self.df.loc[start:end, 'seg'] = idx
@@ -130,7 +132,7 @@ class Fitter:
         if seg_pair:
             loss = 0
             ### longest test : 11
-            c_order = {0: 11}
+            c_order = {0: 22, 1: 39, 2: 40} if self.is_gb5 else {0: 11}
             dur_list = [(end - start, idx) for idx, (start, end) in enumerate(seg_pair)]
             dur_list.sort(key=lambda x: x[0], reverse=True)
 
@@ -138,7 +140,7 @@ class Fitter:
                 length, idx = dur_list[key]
                 loss += abs(idx - val)
 
-            loss += abs(32 - len(seg_pair))
+            loss += abs((42 if self.is_gb5 else 32) - len(seg_pair))
         res_table[linear_idx] = (loss, threshold, avg_num, rest_dur, seg_pair.copy())
 
     def try_range(self, th_lo, th_hi, avg_lo, avg_hi, rest_lo, rest_hi):

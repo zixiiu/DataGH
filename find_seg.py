@@ -58,8 +58,8 @@ def find_seg(df, th, rd, ra, visualize=False):
 if __name__ == '__main__':
     # f = Fitter()
     # f.load_data()
-    df = pd.read_csv('data/8g3 gb6 7454.csv')
+    df = pd.read_csv('data/8g3 gb5 6758.csv')
     th = 2
-    rd = 2
+    rd = 0.6
     ra = 250
     find_seg(df, th, rd, ra, True)

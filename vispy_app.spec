@@ -25,7 +25,7 @@ hidden_imports = [
 if is_win:
     hidden_imports += collect_submodules("encodings")
 
-a = Analysis(['vispy_app.py'],
+a_nom = Analysis(['vispy_app_nom.py'],
              pathex=['C:\\sixdof\\telegraph2'],
              datas=data_files,
              hiddenimports=hidden_imports,
@@ -37,13 +37,14 @@ a = Analysis(['vispy_app.py'],
              cipher=block_cipher,
              noarchive=False)
 
-pyz = PYZ(a.pure, a.zipped_data,
+pyz_nom = PYZ(a_nom.pure, a_nom.zipped_data,
              cipher=block_cipher)
-exe = EXE(pyz,
-          a.scripts,
-          a.binaries,
-          a.zipfiles,
-          a.datas,
+
+exe_nom = EXE(pyz_nom,
+          a_nom.scripts,
+          a_nom.binaries,
+          a_nom.zipfiles,
+          a_nom.datas,
           [],
           name='vispy_app',
           debug=False,
@@ -53,13 +54,59 @@ exe = EXE(pyz,
           runtime_tmpdir=None,
           console=True)
 
-exe2 = EXE(pyz,
-          a.scripts,
-          a.binaries,
-          a.zipfiles,
-          a.datas,
+a_lf = Analysis(['vispy_app_large_font.py'],
+             pathex=['C:\\sixdof\\telegraph2'],
+             datas=data_files,
+             hiddenimports=hidden_imports,
+             binaries=[],
+             runtime_hooks=[],
+             excludes=[],
+             win_no_prefer_redirects=False,
+             win_private_assemblies=False,
+             cipher=block_cipher,
+             noarchive=False)
+
+
+pyz_lf = PYZ(a_lf.pure, a_lf.zipped_data,
+             cipher=block_cipher)
+
+exe_lf = EXE(pyz_lf,
+          a_lf.scripts,
+          a_lf.binaries,
+          a_lf.zipfiles,
+          a_lf.datas,
           [],
           name='vispy_app_large_font',
+          debug=False,
+          bootloader_ignore_signals=False,
+          strip=False,
+          upx=True,
+          runtime_tmpdir=None,
+          console=True)
+
+a_gb5 = Analysis(['vispy_app_gb5.py'],
+             pathex=['C:\\sixdof\\telegraph2'],
+             datas=data_files,
+             hiddenimports=hidden_imports,
+             binaries=[],
+             runtime_hooks=[],
+             excludes=[],
+             win_no_prefer_redirects=False,
+             win_private_assemblies=False,
+             cipher=block_cipher,
+             noarchive=False)
+
+
+pyz_gb5 = PYZ(a_gb5.pure, a_gb5.zipped_data,
+             cipher=block_cipher)
+
+exe_gb5 = EXE(pyz_gb5,
+          a_gb5.scripts,
+          a_gb5.binaries,
+          a_gb5.zipfiles,
+          a_gb5.datas,
+          [],
+          name='vispy_app_gb5',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
