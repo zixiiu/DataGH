@@ -105,7 +105,7 @@ class VispyApp:
         grid.spacing = 0
 
         title = scene.Label(
-            "GB6 Power Filter(ctrl+R: Remove, ctrl+A: Add, ctrl+D: Deselect, ctrl+S: Save, I: Insert Segment, O: Remove Segment)",
+            "GB6 Power Filter(ctrl+R: Remove, ctrl+A: Add, ctrl+D: Deselect, ctrl+S: Save, I: Insert Segment, O: Remove Segment, P: Toggle Line)",
             color='white', font_size=self._font_size, font_manager=self.font_manager)
         title.height_max = 40
         grid.add_widget(title, row=0, col=0, col_span=2)
@@ -147,6 +147,13 @@ class VispyApp:
         self.scatter = visuals.Markers()
         self.reset_point_color()
         view.add(self.scatter)
+
+        # add line
+        self.line_enabled = False
+        self.line = visuals.Line()
+        # self.line = visuals.Line()
+        # view.add(self.line)
+        # self.line.set_data(self.data, width=5, color=(0, 0.6, 1, 1))
 
         for idx in range(42 if self.is_gb5 else 32):
             start, end = self.fitter.get_seg_pair(idx)
@@ -231,6 +238,18 @@ class VispyApp:
                 for idx in sorted(rm_idxes, reverse=True):
                     self.fitter.rm_seg(idx)
                 self.replot_graph_element()
+
+            # p
+            if event.key.name == 'P':
+                if self.line_enabled:
+                    self.line.set_data(pos=(0,0))
+                    self.line_enabled = False
+                else:
+
+                    self.line.set_data(self.data, width=5, color=(0, 0.6, 1, 1))
+                    view.add(self.line)
+                    self.line_enabled = True
+
 
         @canvas.connect
         def on_mouse_press(event):

@@ -42,27 +42,28 @@ class Fitter:
 
 
     def load_seg_from_df(self):
-        seg_pair = []
-        last_seg = -1
-        start_idx = 0
-        pbar = tqdm.tqdm(total=len(self.df['Time (s)']), desc='Loading...')
-        for idx, row in self.df.iterrows():
-            if last_seg != row['seg']:
-                if last_seg == -1:
-                    start_idx = idx
-                else:
-                    seg_pair.append((start_idx, idx))
-            if row['rm_mark']:
-                self.rm_idx.add(idx)
-            last_seg = row['seg']
-            pbar.update(1)
+        df = self.df
+        # Find where 'seg' changes.
+        changes = df['seg'] != df['seg'].shift()
+        change_indices = changes[changes].index.tolist()
 
-        self.seg_pair = seg_pair
+        # Exclude the first element if it's 0 because it's not a change point
+        if change_indices and change_indices[0] == 0:
+            change_indices.pop(0)
+
+        # Now, you will get pairs for the rest of the changes.
+        # Since we need to pair them as (first, second), (third, fourth), we need to make sure
+        # that there is an even number of change points. If not, add the last index to the list.
+        if len(change_indices) % 2 != 0:
+            change_indices.append(df.index[-1])
+
+        seg_pairs = [(change_indices[i], change_indices[i + 1]) for i in range(0, len(change_indices) - 1, 2)]
+
+        self.rm_idx = set(df.index[df['rm_mark']])
+
+        self.seg_pair = seg_pairs
 
         self.recalculate_avg()
-
-        pbar.set_description('found %d seg' % len(seg_pair))
-        pbar.close()
 
     def sync_rm_mark(self):
         self.df['rm_mark'] = False
