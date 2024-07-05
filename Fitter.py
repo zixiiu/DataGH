@@ -29,6 +29,10 @@ class Fitter:
         self.sync_seg_to_df()
         self.sync_rm_mark()
         self.df.to_csv(self.path, index=False)
+
+    def print_avg_to_console(self):
+        for i in self.seg_average:
+            print('%.3f' %i)
     def load_data(self, path='data/D9200 1920 5150.csv'):
         self.df = pd.read_csv(path)
         self.path = path

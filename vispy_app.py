@@ -227,6 +227,9 @@ class VispyApp:
                 self.fitter.save_df_to_file()
                 logging.info('saved to %s' % self.fitter.path)
             # i
+            if 'Control' in modifiers and event.key.name == 'P':
+                self.fitter.print_avg_to_console()
+
             if event.key.name == 'I':
                 start, end = self.selected_mask.nonzero()[0][[0, -1]]
                 self.fitter.add_seg(start, end)
