@@ -6,6 +6,7 @@ import tqdm
 
 from multiprocessing import Pool, Value, Manager, freeze_support, cpu_count
 
+import consts
 from find_seg import find_seg
 
 
@@ -36,6 +37,18 @@ class Fitter:
     def load_data(self, path='data/D9200 1920 5150.csv'):
         self.df = pd.read_csv(path)
         self.path = path
+        if 'timestamp' in self.df.columns and 'Vo(V)' in self.df.columns:
+            #recalculate power AND time:
+            df = self.df
+            # Convert timestamp to datetime objects
+            df['timestamp'] = pd.to_datetime(df['timestamp'])
+
+            # Calculate "Time (s)" - seconds elapsed from the first timestamp
+            df['Time (s)'] = (df['timestamp'] - df['timestamp'].iloc[0]).dt.total_seconds()
+
+            # Calculate "Main Avg Power (W)" - Vo(V) * current(mA) / 1000 (to convert mA to A)
+            df['Main Avg Power (W)'] = abs(df['Vo(V)'] * df['current(mA)'] / 1000)
+
         if 'seg' not in self.df.columns:
             self.df['seg'] = -1
             self.df.to_csv(path, index=False)
@@ -78,7 +91,7 @@ class Fitter:
         for idx, (start, end) in enumerate(self.seg_pair):
             filtered_df = self.df.iloc[start:end].copy()
             filtered_df = filtered_df[filtered_df['rm_mark'] == False]
-            average = filtered_df['Main Avg Power (W)'].mean()
+            average = filtered_df[consts.power_col_name].mean()
             self.seg_average[idx] = average
 
     def add_seg(self, start, end):

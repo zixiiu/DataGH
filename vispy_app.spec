@@ -54,6 +54,7 @@ exe_nom = EXE(pyz_nom,
           runtime_tmpdir=None,
           console=True)
 
+
 a_lf = Analysis(['vispy_app_large_font.py'],
              pathex=['C:\\sixdof\\telegraph2'],
              datas=data_files,
@@ -107,6 +108,65 @@ exe_gb5 = EXE(pyz_gb5,
           a_gb5.datas,
           [],
           name='vispy_app_gb5',
+          debug=False,
+          bootloader_ignore_signals=False,
+          strip=False,
+          upx=True,
+          runtime_tmpdir=None,
+          console=True)
+
+a_gb5_z = Analysis(['vispy_app_gb5_powerz.py'],
+             pathex=['C:\\sixdof\\telegraph2'],
+             datas=data_files,
+             hiddenimports=hidden_imports,
+             binaries=[],
+             runtime_hooks=[],
+             excludes=[],
+             win_no_prefer_redirects=False,
+             win_private_assemblies=False,
+             cipher=block_cipher,
+             noarchive=False)
+
+
+pyz_gb5_z = PYZ(a_gb5_z.pure, a_gb5_z.zipped_data,
+             cipher=block_cipher)
+
+exe_gb5_z = EXE(pyz_gb5_z,
+          a_gb5_z.scripts,
+          a_gb5_z.binaries,
+          a_gb5_z.zipfiles,
+          a_gb5_z.datas,
+          [],
+          name='vispy_app_gb5_powerz',
+          debug=False,
+          bootloader_ignore_signals=False,
+          strip=False,
+          upx=True,
+          runtime_tmpdir=None,
+          console=True)
+
+a_nom_z = Analysis(['vispy_app_nom_powerz.py'],
+             pathex=['C:\\sixdof\\telegraph2'],
+             datas=data_files,
+             hiddenimports=hidden_imports,
+             binaries=[],
+             runtime_hooks=[],
+             excludes=[],
+             win_no_prefer_redirects=False,
+             win_private_assemblies=False,
+             cipher=block_cipher,
+             noarchive=False)
+
+pyz_nom_z = PYZ(a_nom_z.pure, a_nom_z.zipped_data,
+             cipher=block_cipher)
+
+exe_nom_z = EXE(pyz_nom_z,
+          a_nom_z.scripts,
+          a_nom_z.binaries,
+          a_nom_z.zipfiles,
+          a_nom_z.datas,
+          [],
+          name='vispy_app_powerz',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,

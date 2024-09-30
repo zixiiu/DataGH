@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from vispy import scene
 from vispy.scene import visuals, AxisWidget, cameras
+import consts
 
 
 class CustomPanZoomCamera(cameras.PanZoomCamera):
@@ -30,8 +31,8 @@ class CustomPanZoomCamera(cameras.PanZoomCamera):
 df = pd.read_csv('data/D9200 1918 5143.csv')
 
 # Extract the data
-times = df['Time (s)'].values
-powers = df['Main Avg Power (W)'].values
+times = df[consts.time_col_name].values
+powers = df[consts.power_col_name].values
 
 canvas = scene.SceneCanvas(keys='interactive', show=True, bgcolor='white')
 view = canvas.central_widget.add_view()
