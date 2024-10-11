@@ -330,7 +330,16 @@ class VispyApp:
         self._init_canvas()
         app.run()
 
-
+def check_filetype(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        # Read the first line
+        first_line = file.readline()
+        if 'Time (s)' in first_line:
+            consts.power_col_name, consts.time_col_name = 'Main Avg Power (W)', 'Time (s)'
+        elif 'Unix' in first_line:
+            consts.power_col_name, consts.time_col_name = 'PWR', 'Unix'
+        else:
+            raise ValueError('invalid csv, check your data.')
 def run_with_args(large_font=False, gb5=False, col_name=('Main Avg Power (W)', 'Time (s)')):
     consts.power_col_name, consts.time_col_name = col_name
     vapp = VispyApp()
@@ -339,6 +348,7 @@ def run_with_args(large_font=False, gb5=False, col_name=('Main Avg Power (W)', '
         vapp._font_size = 48
         vapp._x_axis_font_size = 36
     file_path = filedialog.askopenfilename()
+    check_filetype(file_path)
     vapp.read_data(file_path)
     recal_yn = input('Recalculate Segments? (y/n)')
     if recal_yn == 'y' or recal_yn == 'Y':
