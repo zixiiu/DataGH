@@ -334,7 +334,7 @@ def check_filetype(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
         # Read the first line
         first_line = file.readline()
-        if 'Time (s)' in first_line:
+        if 'Time (s)' in first_line or 'Active Instrument' in first_line:
             consts.power_col_name, consts.time_col_name = 'Main Avg Power (W)', 'Time (s)'
         elif 'Unix' in first_line:
             consts.power_col_name, consts.time_col_name = 'PWR', 'Unix'

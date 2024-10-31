@@ -34,11 +34,27 @@ class Fitter:
     def print_avg_to_console(self):
         for i in self.seg_average:
             print('%.3f' %i)
+
     def load_data(self, path='data/D9200 1920 5150.csv'):
+        # Read the CSV file
+        with open(path, 'r') as file:
+            lines = file.readlines()
+
+        # Check if the first line matches the expected format
+        if lines[0].startswith("Active Instrument"):
+            # If the first line is not valid, remove it
+            lines = lines[1:]
+
+            # Write the cleaned lines back to the file
+            with open(path, 'w') as file:
+                file.writelines(lines)
+
+        # Load the cleaned data into a DataFrame
         self.df = pd.read_csv(path)
         self.path = path
+
         if 'timestamp' in self.df.columns and 'Vo(V)' in self.df.columns:
-            #recalculate power AND time:
+            # Existing case: Calculate power for the original format
             df = self.df
             # Convert timestamp to datetime objects
             df['timestamp'] = pd.to_datetime(df['timestamp'])
@@ -49,14 +65,23 @@ class Fitter:
             # Calculate "Main Avg Power (W)" - Vo(V) * current(mA) / 1000 (to convert mA to A)
             df['Main Avg Power (W)'] = abs(df['Vo(V)'] * df['current(mA)'] / 1000)
 
+        elif 'Time (s)' in self.df.columns and 'Voltage (V)' in self.df.columns and 'Current (AMP)' in self.df.columns:
+            # New case: Calculate power for the new format
+            df = self.df
+
+            # Calculate "Main Avg Power (W)" - Voltage (V) * Current (AMP)
+            df['Main Avg Power (W)'] = abs(df['Voltage (V)'] * df['Current (AMP)'])
+
+            # Rename 'Time (s)' to match other format if needed
+            df.rename(columns={'Time (s)': 'Time (s)'}, inplace=True)
+
+        # Ensure necessary columns exist
         if 'seg' not in self.df.columns:
             self.df['seg'] = -1
             self.df.to_csv(path, index=False)
         if 'rm_mark' not in self.df.columns:
             self.df['rm_mark'] = False
             self.df.to_csv(path, index=False)
-
-
 
     def load_seg_from_df(self):
         df = self.df
