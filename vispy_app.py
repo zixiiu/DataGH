@@ -133,10 +133,11 @@ class VispyApp:
         # before the scatter:
         for idx in range(42 if self.is_gb5 else 32):
             start, end = self.fitter.get_seg_pair(idx)
-            lr = scene.LinearRegion([self.df.iloc[start][consts.time_col_name], self.df.iloc[end][consts.time_col_name]],
-                                    [0.4, 0.4, 0.4, 0.5],
-                                    vertical=True,
-                                    parent=view.scene)
+            lr = scene.LinearRegion(
+                [self.df.iloc[start][consts.time_col_name], self.df.iloc[end][consts.time_col_name]],
+                [0.4, 0.4, 0.4, 0.5],
+                vertical=True,
+                parent=view.scene)
             self.graph_element.append([lr])
 
         # add data
@@ -167,18 +168,20 @@ class VispyApp:
                                    font_manager=self.font_manager, font_size=self._font_size)
             else:
                 ntext = scene.Text('%i, %s' % (idx + 1, self._test_name_map[idx]),
-                               pos=(self.df.iloc[start][consts.time_col_name], nlevel),
-                               color='white', parent=view.scene,
-                               rotation=270., anchor_x='left', anchor_y='top',
-                               font_manager=self.font_manager, font_size=self._font_size)
+                                   pos=(self.df.iloc[start][consts.time_col_name], nlevel),
+                                   color='white', parent=view.scene,
+                                   rotation=270., anchor_x='left', anchor_y='top',
+                                   font_manager=self.font_manager, font_size=self._font_size)
             # ntext = None
             avg = self.fitter.seg_average[idx]
-            atext = scene.Text('%.2f' % avg, pos=(self.df.iloc[end][consts.time_col_name], avg), color='white', parent=view.scene,
+            atext = scene.Text('%.2f' % avg, pos=(self.df.iloc[end][consts.time_col_name], avg), color='white',
+                               parent=view.scene,
                                anchor_x='left', anchor_y='top', font_manager=self.font_manager,
                                font_size=self._font_size)
             # atext = None
             aline = scene.Line(
-                pos=np.array([[self.df.iloc[start][consts.time_col_name], avg], [self.df.iloc[end][consts.time_col_name], avg]]),
+                pos=np.array(
+                    [[self.df.iloc[start][consts.time_col_name], avg], [self.df.iloc[end][consts.time_col_name], avg]]),
                 color=(0, 1, 0, 1), parent=view.scene, width=2)
             self.graph_element[idx].extend([ntext, aline, atext])
 
@@ -246,14 +249,13 @@ class VispyApp:
             # p
             if event.key.name == 'P':
                 if self.line_enabled:
-                    self.line.set_data(pos=(0,0))
+                    self.line.set_data(pos=(0, 0))
                     self.line_enabled = False
                 else:
 
                     self.line.set_data(self.data, width=5, color=(0, 0.6, 1, 1))
                     view.add(self.line)
                     self.line_enabled = True
-
 
         @canvas.connect
         def on_mouse_press(event):
@@ -300,7 +302,8 @@ class VispyApp:
     def replot_graph_element(self):
         for idx, (lr, ntext, aline, atext) in enumerate(self.graph_element):
             start, end = self.fitter.get_seg_pair(idx)
-            lr.set_data(pos=np.array([self.df.iloc[start][consts.time_col_name], self.df.iloc[end][consts.time_col_name]]))
+            lr.set_data(
+                pos=np.array([self.df.iloc[start][consts.time_col_name], self.df.iloc[end][consts.time_col_name]]))
             if self.is_gb5:
                 ntext.text = '%i, %s' % (idx + 1, 'Some GB5 Test')
             else:
@@ -315,7 +318,8 @@ class VispyApp:
         for idx, (_, _, aline, atext) in enumerate(self.graph_element):
             avg = self.fitter.seg_average[idx]
             start, end = self.fitter.get_seg_pair(idx)
-            aline.set_data(pos=np.array([[self.df.iloc[start][consts.time_col_name], avg], [self.df.iloc[end][consts.time_col_name], avg]]))
+            aline.set_data(pos=np.array(
+                [[self.df.iloc[start][consts.time_col_name], avg], [self.df.iloc[end][consts.time_col_name], avg]]))
 
             atext.text = '%0.2f' % avg
             atext.pos = (self.df.iloc[end][consts.time_col_name], avg)
@@ -330,6 +334,7 @@ class VispyApp:
         self._init_canvas()
         app.run()
 
+
 def check_filetype(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
         # Read the first line
@@ -338,8 +343,12 @@ def check_filetype(file_path):
             consts.power_col_name, consts.time_col_name = 'Main Avg Power (W)', 'Time (s)'
         elif 'Unix' in first_line:
             consts.power_col_name, consts.time_col_name = 'PWR', 'Unix'
+        elif 'VBUS' in first_line:
+            consts.power_col_name, consts.time_col_name = 'Power', 'Time'
         else:
             raise ValueError('invalid csv, check your data.')
+
+
 def run_with_args(large_font=False, gb5=False, col_name=('Main Avg Power (W)', 'Time (s)')):
     consts.power_col_name, consts.time_col_name = col_name
     vapp = VispyApp()
